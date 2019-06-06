@@ -362,7 +362,7 @@ class migrator
 				$userGroup['group_id'] = $this->replaceUser($userGroup['group_id']);
 				unset($userGroup['id']);
 				$userGroup['user_id'] = $idUserNew;
-				$this->dbNew->insert('groups_users', $userEmail);
+				$this->dbNew->insert('groups_users', $userGroup);
 			}
 		}
 	}
