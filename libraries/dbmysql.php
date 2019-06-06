@@ -48,10 +48,10 @@ class DBMysql
 	 */
 	protected $bdLink;
 
-	const ERROR_CONNECT = "Impossible de se connecter a la base de donnees";
-	const ERROR_SELECT_DB = "Impossible de selectionner la base de donnees";
-	const ERROR_NO_CONNECTION = "Impossible car la connexion a la BD est inactive";
-	const ERROR_SQL_FAILED = "La requete a echouee";
+	const ERROR_CONNECT = "Unable to connect to the database";
+	const ERROR_SELECT_DB = "Unable to select the database";
+	const ERROR_NO_CONNECTION = "No active database connection";
+	const ERROR_SQL_FAILED = "The request failed";
 
 	/**
 	 * Constructor
@@ -153,10 +153,9 @@ class DBMysql
 		static $fake_id = -1;
 
 		if (DRYRUN) {
-			$sql = explode(' ', $query, 2);
-			$sql[0] = trim($sql[0]);
-			if (in_array($sql[0], array('UPDATE', 'INSERT', 'DELETE'))) {
-				file_put_contents(LOGFILE, $query.' : returned '.$fake_id.PHP_EOL, FILE_APPEND);
+				file_put_contents(LOGFILE, $this->databaseName.' => '.$query.' : returned '.$fake_id.PHP_EOL, FILE_APPEND);
+				$sql = explode(' ', $query, 2);
+				$sql[0] = trim($sql[0]);
 				return $sql[0] == 'INSERT' ? $fake_id-- : true;
 			}
 		}
