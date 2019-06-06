@@ -1014,7 +1014,7 @@ class migrator
 		}
 		$idProjectOld = 'IN ('.implode(',', $idProjectOld).')';
 
-		$result = $this->dbOld->select('projects', $idProjectOld);
+		$result = $this->dbOld->select('projects', array('id' => $idProjectOld));
 		$projectsOld = $this->dbOld->getAssocArrays($result);
 
 		foreach ($projectsOld as $projectOld) {
