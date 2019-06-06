@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__FILE__) . '/dbysql.php';
+require_once dirname(__FILE__) . '/dbmysql.php';
 
 // setup the log
 if (DRYRUN) {
