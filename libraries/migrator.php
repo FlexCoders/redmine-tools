@@ -960,7 +960,7 @@ class migrator
 	{
 		// reorder Boards
 		$result = $this->dbNew->select('boards', null, array('id'), 'position');
-		$boards = $this->dbOld->getAssocArrays($result);
+		$boards = $this->dbNew->getAssocArrays($result);
 		$order = 1;
 		foreach ($boards as $board) {
 			$this->dbNew->update('boards', array('position' => $order++), array('id' => $board['id']));
@@ -968,10 +968,10 @@ class migrator
 
 		// reorder Enumerations
 		$result = $this->dbNew->select('enumerations', null, array('type'), null, true);
-		$types = $this->dbOld->getAssocArrays($result);
+		$types = $this->dbNew->getAssocArrays($result);
 		foreach ($types as $type) {
-			$result = $this->dbNew->select('enumerations', array('type' => $type), array('id'), 'position');
-			$enumerations = $this->dbOld->getAssocArrays($result);
+			$result = $this->dbNew->select('enumerations', array('type' => $type['type']), array('id'), 'position');
+			$enumerations = $this->dbNew->getAssocArrays($result);
 			$order = 1;
 			foreach ($enumerations as $enumeration) {
 				$this->dbNew->update('enumerations', array('position' => $order++), array('id' => $enumeration['id']));
@@ -980,7 +980,7 @@ class migrator
 
 		// reorder Roles
 		$result = $this->dbNew->select('roles', null, array('id'), 'position');
-		$roles = $this->dbOld->getAssocArrays($result);
+		$roles = $this->dbNew->getAssocArrays($result);
 		$order = 1;
 		foreach ($roles as $role) {
 			$this->dbNew->update('roles', array('position' => $order++), array('id' => $role['id']));
@@ -988,7 +988,7 @@ class migrator
 
 		// reorder Trackers
 		$result = $this->dbNew->select('trackers', null, array('id'), 'position');
-		$trackers = $this->dbOld->getAssocArrays($result);
+		$trackers = $this->dbNew->getAssocArrays($result);
 		$order = 1;
 		foreach ($trackers as $tracker) {
 			$this->dbNew->update('trackers', array('position' => $order++), array('id' => $tracker['id']));
