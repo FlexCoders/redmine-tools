@@ -881,6 +881,7 @@ class migrator
 			$idIssueNew = $this->dbNew->insert('issues', $issueOld);
 			$this->issuesMapping[$idIssueOld] = $idIssueNew;
 
+			$this->migrateIssueRelations($idIssueOld);
 			$this->migrateJournals($idIssueOld);
 		}
 	}
@@ -904,7 +905,7 @@ class migrator
 
 	protected function migrateIssueRelations($idIssueOld)
 	{
-		$result = $this->dbOld->select('issue_relations');
+		$result = $this->dbOld->select('issue_relations', array('issue_from_id' => $idIssueOld));
 		$relationsOld = $this->dbOld->getAssocArrays($result);
 		foreach ($relationsOld as $relation) {
 			$idRelationOld = $relation['id'];
@@ -1061,7 +1062,6 @@ class migrator
 			$this->migrateCategories($idProjectOld);
 			$this->migrateIssues($idProjectOld);
 			$this->migrateIssuesParents($idProjectOld);
-			$this->migrateIssueRelations($idProjectOld);
 			$this->migrateNews($idProjectOld);
 			$this->migrateQueries($idProjectOld);
 			$this->migrateMailReminders($idProjectOld);
