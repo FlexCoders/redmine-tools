@@ -1018,6 +1018,7 @@ class migrator
 		$projectsOld = $this->dbOld->getAssocArrays($result);
 
 		foreach ($projectsOld as $projectOld) {
+			$idProjectOld = $projectOld['id'];
 			unset($projectOld['id']);
 			$projectOld['parent_id'] = null;
 			$projectOld['lft'] = 1;
