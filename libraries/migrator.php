@@ -338,7 +338,7 @@ class migrator
 			$this->userMapping[$idUserOld] = $idUserNew;
 
 			// migrate the users preferences
-			$result = $this->dbOld->select('user_preferences', array('user_id', $idUserOld));
+			$result = $this->dbOld->select('user_preferences', array('user_id' => $idUserOld));
 			$userPrefs = $this->dbOld->getAssocArrays($result);
 			foreach ($userPrefs as $userPref) {
 				unset($userPref['id']);
@@ -347,7 +347,7 @@ class migrator
 			}
 
 			// migrate the users email addresses
-			$result = $this->dbOld->select('email_addresses', array('user_id', $idUserOld));
+			$result = $this->dbOld->select('email_addresses', array('user_id' => $idUserOld));
 			$userEmails = $this->dbOld->getAssocArrays($result);
 			foreach ($userEmails as $userEmail) {
 				unset($userEmail['id']);
@@ -356,7 +356,7 @@ class migrator
 			}
 
 			// migrate the users groups and group memberships
-			$result = $this->dbOld->select('groups_users', array('user_id', $idUserOld));
+			$result = $this->dbOld->select('groups_users', array('user_id' => $idUserOld));
 			$userGroups = $this->dbOld->getAssocArrays($result);
 			foreach ($userGroups as $userGroup) {
 				$userGroup['group_id'] = $this->replaceUser($userGroup['group_id']);
