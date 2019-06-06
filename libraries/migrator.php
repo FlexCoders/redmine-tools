@@ -90,7 +90,7 @@ class migrator
 		if (!isset($this->usersMapping[$idUserOld])) {
 			// users can be anywhere, migrate them dynamically
 			$this->migrateUsers($idUserOld);
-			if (!isset($this->usersMapping[$idUserOld])) {
+			if (! DRYRUN and ! isset($this->usersMapping[$idUserOld])) {
 				throw new Exception("No mapping defined for old user id '$idUserOld'");
 			}
 		}
@@ -107,7 +107,7 @@ class migrator
 		if (!isset($this->rolesMapping[$idRoleOld])) {
 			// migrate them dynamically when needed
 			$this->migrateRoles($idRoleOld);
-			if (!isset($this->rolesMapping[$idRoleOld])) {
+			if ( ! DRYRUN and ! isset($this->rolesMapping[$idRoleOld])) {
 				throw new Exception("No role defined for old role id '$idRoleOld'");
 			}
 		}
@@ -137,7 +137,7 @@ class migrator
 		if (!isset($this->enumerationsMapping[$idEnumerationOld])) {
 			// migrate them dynamically when needed
 			$this->migrateEnumerations($idEnumerationOld);
-			if (!isset($this->enumerationsMapping[$idEnumerationOld])) {
+			if ( ! DRYRUN and ! isset($this->enumerationsMapping[$idEnumerationOld])) {
 				throw new Exception("No mapping defined for old enumeration id '$idEnumerationOld'");
 			}
 		}
