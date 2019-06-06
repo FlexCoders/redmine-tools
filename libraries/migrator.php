@@ -856,7 +856,7 @@ class migrator
 	protected function migrateIssue($idIssueOld)
 	{
 		if (is_array($idIssueOld)) {
-			$issueOld = array($idIssueOld);
+			$issuesOld = array($idIssueOld);
 		} else {
 			$result = $this->dbOld->select('issues', array('id' => $idIssueOld));
 			$issuesOld = $this->dbOld->getAssocArrays($result);
