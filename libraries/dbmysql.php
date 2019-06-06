@@ -156,7 +156,9 @@ class DBMysql
 			file_put_contents(LOGFILE, $this->databaseName.' => '.$query.' : returned '.$fake_id.PHP_EOL, FILE_APPEND);
 			$sql = explode(' ', $query, 2);
 			$sql[0] = trim($sql[0]);
-			return $sql[0] == 'INSERT' ? $fake_id-- : true;
+			if ($sql[0] != 'SELECT') {
+				return $sql[0] == 'INSERT' ? $fake_id-- : true;
+			}
 		}
 
 		$this->gestionErreur(!isset($this->bdLink), "Query - " . self::ERROR_NO_CONNECTION);
