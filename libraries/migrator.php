@@ -152,7 +152,11 @@ class migrator
 		}
 
 		if (!isset($this->issuesMapping[$idIssueOld])) {
-			throw new Exception("No status defined for old status id '$idIssueOld'");
+			// migrate dynamically when needed
+			$this->migrateIssue($idIssueOld);
+			if (!isset($this->issuesMapping[$idIssueOld])) {
+				throw new Exception("No issue defined for old issue id '$idIssueOld'");
+			}
 		}
 
 		return $this->issuesMapping[$idIssueOld];
@@ -845,11 +849,25 @@ class migrator
 		$result = $this->dbOld->select('issues', array('project_id' => $idProjectOld));
 		$issuesOld = $this->dbOld->getAssocArrays($result);
 		foreach ($issuesOld as $issueOld) {
+			$this->migrateIssue($issueOld);
+		}
+	}
+
+	protected function migrateIssue($idIssueOld)
+	{
+		if (is_array($idIssueOld)) {
+			$issueOld = array($idIssueOld);
+		} else {
+			$result = $this->dbOld->select('issues', array('id' => $idIssueOld));
+			$issuesOld = $this->dbOld->getAssocArrays($result);
+		}
+
+		foreach ($issuesOld as $issueOld) {
 			$idIssueOld = $issueOld['id'];
 			unset($issueOld['id']);
 
 			// Update fields for new version of issue
-			$issueOld['project_id'] = $this->replaceProject($idProjectOld);
+			$issueOld['project_id'] = $this->replaceProject($issueOld['project_id']);
 			$issueOld['assigned_to_id'] = $this->replaceUser($issueOld['assigned_to_id']);
 			$issueOld['author_id'] = $this->replaceUser($issueOld['author_id']);
 			$issueOld['priority_id'] = $this->replaceEnumeration($issueOld['priority_id']);
