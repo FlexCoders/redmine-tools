@@ -153,11 +153,10 @@ class DBMysql
 		static $fake_id = -1;
 
 		if (DRYRUN) {
-				file_put_contents(LOGFILE, $this->databaseName.' => '.$query.' : returned '.$fake_id.PHP_EOL, FILE_APPEND);
-				$sql = explode(' ', $query, 2);
-				$sql[0] = trim($sql[0]);
-				return $sql[0] == 'INSERT' ? $fake_id-- : true;
-			}
+			file_put_contents(LOGFILE, $this->databaseName.' => '.$query.' : returned '.$fake_id.PHP_EOL, FILE_APPEND);
+			$sql = explode(' ', $query, 2);
+			$sql[0] = trim($sql[0]);
+			return $sql[0] == 'INSERT' ? $fake_id-- : true;
 		}
 
 		$this->gestionErreur(!isset($this->bdLink), "Query - " . self::ERROR_NO_CONNECTION);
