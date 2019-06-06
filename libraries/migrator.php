@@ -334,7 +334,7 @@ class migrator
 	protected function migrateUsers($idUserOld)
 	{
 		// migrate the user
-		$result = $this->dbOld->select('users', $idUserOld);
+		$result = $this->dbOld->select('users', array('id' => $idUserOld));
 		$usersOld = $this->dbOld->getAssocArrays($result);
 		foreach ($usersOld as $userOld) {
 			unset($userOld['id']);
