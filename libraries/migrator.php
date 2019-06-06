@@ -335,7 +335,7 @@ class migrator
 		foreach ($usersOld as $userOld) {
 			unset($userOld['id']);
 			$idUserNew = $this->dbNew->insert('users', $userOld);
-			$this->userMapping[$idUserOld] = $idUserNew;
+			$this->usersMapping[$idUserOld] = $idUserNew;
 
 			// migrate the users preferences
 			$result = $this->dbOld->select('user_preferences', array('user_id' => $idUserOld));
