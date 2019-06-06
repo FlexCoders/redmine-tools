@@ -506,16 +506,28 @@ class migrator
 				$journalDetail['value'] = $this->replaceUser($journalDetail['value']);
 			}
 			if ($journalDetail['prop_key'] == 'tracker_id') {
-				$journalDetail['old_value'] = $this->replaceTracker($journalDetail['old_value']);
-				$journalDetail['value'] = $this->replaceTracker($journalDetail['value']);
+				try {
+					$journalDetail['old_value'] = $this->replaceTracker($journalDetail['old_value']);
+					$journalDetail['value'] = $this->replaceTracker($journalDetail['value']);
+				} catch (\Exception $e) {
+					// ignore
+				}
 			}
 			if ($journalDetail['prop_key'] == 'status_id') {
-				$journalDetail['old_value'] = $this->replaceStatus($journalDetail['old_value']);
-				$journalDetail['value'] = $this->replaceStatus($journalDetail['value']);
+				try {
+					$journalDetail['old_value'] = $this->replaceStatus($journalDetail['old_value']);
+					$journalDetail['value'] = $this->replaceStatus($journalDetail['value']);
+				} catch (\Exception $e) {
+					// ignore
+				}
 			}
 			if ($journalDetail['prop_key'] == 'priority_id') {
-				$journalDetail['old_value'] = $this->replaceEnumeration($journalDetail['old_value']);
-				$journalDetail['value'] = $this->replaceEnumeration($journalDetail['value']);
+				try {
+					$journalDetail['old_value'] = $this->replaceEnumeration($journalDetail['old_value']);
+					$journalDetail['value'] = $this->replaceEnumeration($journalDetail['value']);
+				} catch (\Exception $e) {
+					// ignore
+				}
 			}
 
 			$this->dbNew->insert('journal_details', $journalDetail);
