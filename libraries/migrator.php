@@ -7,11 +7,14 @@ if (DRYRUN) {
 	if (!defined('LOGFILE')) {
 		throw new exception('Dryruns require a configured LOG constant.');
 	}
-	if (!is_writable(LOGFILE)) {
-		throw new exception('Unable to write to the LOG file "'.LOGFILE.'"');
-	}
 	if (is_file(LOGFILE)) {
+		if (!is_writable(LOGFILE)) {
+			throw new exception('Unable to clear existing LOG file "'.LOGFILE.'", no write access!');
+		}
 		unlink(LOGFILE);
+	}
+	if (!is_writable(dirname(LOGFILE))) {
+		throw new exception('Unable to write to the LOG file "'.LOGFILE.'"');
 	}
 }
 
