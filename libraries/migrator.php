@@ -938,7 +938,7 @@ class migrator
 		// reorder Enumerations
 		$result = $this->dbNew->select('enumerations', null, array('type'), null, true);
 		$types = $this->dbOld->getAssocArrays($result);
-		foreach ($types as $types) {
+		foreach ($types as $type) {
 			$result = $this->dbNew->select('enumerations', array('type' => $type), array('id'), 'position');
 			$enumerations = $this->dbOld->getAssocArrays($result);
 			$order = 1;
