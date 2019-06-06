@@ -21,7 +21,7 @@ $migrator = new migrator(
  */
 
 // define the enumeration map
-$migrator->setEnumerationMapping(array(
+$migrator->setEnumerationsMapping(array(
 ));
 
 // define the status map (from the issue_statusses table)
