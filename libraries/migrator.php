@@ -1037,7 +1037,7 @@ class migrator
 			$projectOld['parent_id'] = null;
 			$projectOld['lft'] = 1;
 			$projectOld['rgt'] = 2;
-			$this->dbNew->update('projects', array('lft' => '= lft+1', 'rgt' => '= rgt+1'));
+			$this->dbNew->update('projects', array('lft' => '= lft+2', 'rgt' => '= rgt+2'));
 			$idProjectNew = $this->dbNew->insert('projects', $projectOld);
 			echo "migrating old project #$idProjectOld as new project #$idProjectNew".PHP_EOL;
 			$this->projectsMapping[$idProjectOld] = $idProjectNew;
