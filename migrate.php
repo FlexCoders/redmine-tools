@@ -6,6 +6,10 @@
 define('DRYRUN', true);
 define('LOGFILE', __DIR__.'/migrate.log');
 
+// generated script to archive attachments linked to migrated records
+// comment this line if not needed
+define('FILESBACKUP', __DIR__.'/backup-attachments.sh');
+
  // load the migrator class
 require_once dirname(__FILE__) . '/libraries/migrator.php';
 

@@ -4,9 +4,7 @@ require_once dirname(__FILE__) . '/dbmysql.php';
 
 // setup the log
 if (DRYRUN) {
-	if (!defined('LOGFILE')) {
-		throw new exception('Dryruns require a configured LOG constant.');
-	}
+	defined('LOGFILE') or define('LOGFILE', realpath(__DIR__.'/../migrate.log'));
 	if (is_file(LOGFILE)) {
 		if (!is_writable(LOGFILE)) {
 			throw new exception('Unable to clear existing LOG file "'.LOGFILE.'", no write access!');
@@ -17,6 +15,33 @@ if (DRYRUN) {
 		throw new exception('Unable to write to the LOG file "'.LOGFILE.'"');
 	}
 }
+
+if (defined('FILESBACKUP'))
+{
+	if (is_file(FILESBACKUP)) {
+		if (!is_writable(FILESBACKUP)) {
+			throw new exception('Unable to clear existing files backup file "'.FILESBACKUP.'", no write access!');
+		}
+		unlink(FILESBACKUP);
+	}
+	if (!is_writable(dirname(FILESBACKUP))) {
+		throw new exception('Unable to write to the files backup file "'.FILESBACKUP.'"');
+	}
+	file_put_contents(FILESBACKUP, '#! /bin/bash
+#
+# Create a backup tarball for all attachments migrated
+#
+
+# Path to your redmine installation
+# Defaults to current directory
+REDMINE=.
+
+TMPDIR=`mktemp -d 2>/dev/null || mktemp -d -t "tmpdir"`
+TARBALL=$(mktemp -u).tar.gz
+
+');
+}
+
 
 class migrator
 {
@@ -374,7 +399,7 @@ class migrator
 	protected function migrateRoles($idRoleOld)
 	{
 		// migrate the role
-		$result = $this->dbOld->select('roles', $idRoleOld);
+		$result = $this->dbOld->select('roles', array('id' => $idRoleOld));
 		$rolesOld = $this->dbOld->getAssocArrays($result);
 		foreach ($rolesOld as $roleOld) {
 			// check if this role already exists
@@ -393,7 +418,7 @@ class migrator
 	protected function migrateEnumerations($idEnumerationOld)
 	{
 		// migrate the enumeration
-		$result = $this->dbOld->select('enumerations', $idEnumerationOld);
+		$result = $this->dbOld->select('enumerations', array('id' => $idEnumerationOld));
 		$enumerationsOld = $this->dbOld->getAssocArrays($result);
 		foreach ($enumerationsOld as $enumerationOld) {
 			unset($enumerationOld['id']);
@@ -433,6 +458,9 @@ class migrator
 
 			$idVersionNew = $this->dbNew->insert('versions', $versionOld);
 			$this->versionsMapping[$idVersionOld] = $idVersionNew;
+
+			$this->migrateAttachments($idVersionOld, $idVersionNew, 'Version');
+			$this->migrateWatchers($idVersionOld, $idVersionNew, 'Version');
 		}
 	}
 
@@ -538,54 +566,18 @@ class migrator
 		}
 	}
 
-	protected function migrateAttachments($idProjectOld)
+	protected function migrateAttachments($idOld, $idNew, $type)
 	{
-		// $result = $this->dbOld->select('attachments', array('container_type'=> 'Issue'));
-		$result = $this->dbOld->select('attachments');
+		$result = $this->dbOld->select('attachments', array('container_id' => $idOld, 'container_type' => $type));
 		$attachmentsOld = $this->dbOld->getAssocArrays($result);
 		foreach ($attachmentsOld as $aOld) {
-			if ($aOld['container_type'] == 'Issue' && count($this->issuesMapping) > 0) {
-				if (!isset($this->usersMapping[$aOld['author_id']]) || !isset($this->issuesMapping[$aOld['container_id']])) {
-					continue;
-				} else {
-					$aOld['container_id'] = $this->replaceIssue($aOld['container_id']);
-				}
-			} elseif ($aOld['container_type'] == 'Version' && count($this->versionsMapping) > 0) {
-				if (!isset($this->usersMapping[$aOld['author_id']]) || !isset($this->versionsMapping[$aOld['container_id']])) {
-					continue;
-				} else {
-					$aOld['container_id'] = $this->replaceVersion($aOld['container_id']);
-				}
-			} elseif ($aOld['container_type'] == 'Project' && count($this->projectsMapping) > 0) {
-				if (!isset($this->usersMapping[$aOld['author_id']]) || !isset($this->projectsMapping[$aOld['container_id']])) {
-					continue;
-				} else {
-					$aOld['container_id'] = $this->replaceProject($aOld['container_id']);
-				}
-			} elseif ($aOld['container_type'] == 'Message' && count($this->messagesMapping) > 0) {
-				if (!isset($this->usersMapping[$aOld['author_id']]) || !isset($this->messagesMapping[$aOld['container_id']])) {
-					continue;
-				} else {
-					$aOld['container_id'] = $this->replaceMessage($aOld['container_id']);
-				}
-			} elseif ($aOld['container_type'] == 'WikiPage' && count($this->wikipagesMapping) > 0) {
-				if (!isset($this->usersMapping[$aOld['author_id']]) || !isset($this->wikipagesMapping[$aOld['container_id']])) {
-					continue;
-				} else {
-					$aOld['container_id'] = $this->replaceWikipage($aOld['container_id']);
-				}
-			} elseif ($aOld['container_type'] == 'Document' && count($this->documentsMapping) > 0) {
-				if (!isset($this->usersMapping[$aOld['author_id']]) || !isset($this->documentsMapping[$aOld['container_id']])) {
-					continue;
-				} else {
-					$aOld['container_id'] = $this->replaceDocument($aOld['container_id']);
-				}
-			} else {
-				continue;
-			}
-
-			$idAOld = $aOld['id'];
 			unset($aOld['id']);
+			$aOld['container_id'] = $idNew;
+
+			if (defined('FILESBACKUP'))
+			{
+				file_put_contents(FILESBACKUP, 'cp $REDMINE/files/'.$aOld['disk_filename'].' $TMPDIR'.PHP_EOL, FILE_APPEND);
+			}
 
 			// Update fields for new version of issue
 			$aOld['author_id'] = $this->replaceUser($aOld['author_id']);
@@ -595,52 +587,18 @@ class migrator
 		}
 	}
 
-	protected function migrateWatchers($idProjectOld)
+	protected function migrateWatchers($idOld, $idNew, $type)
 	{
-		$result = $this->dbOld->select('watchers');
+		$result = $this->dbOld->select('watchers', array('watchable_id' => $idOld, 'watchable_type' => $type));
 		$watchersOld = $this->dbOld->getAssocArrays($result);
-		foreach ($watchersOld as $watcher) {
-			$idWatcherOld = $watcher['id'];
-			unset($watcher['id']);
-
-			if ($watcher['watchable_type'] == 'Issue' && count($this->issuesMapping) > 0) {
-				if (!isset($this->usersMapping[$watcher['user_id']]) || !isset($this->issuesMapping[$watcher['watchable_id']])) {
-					continue;
-				} else {
-					$watcher['watchable_id'] = $this->replaceIssue($watcher['watchable_id']);
-				}
-			} elseif ($watcher['watchable_type'] == 'Board' && count($this->boardsMapping) > 0) {
-				if (!isset($this->usersMapping[$watcher['user_id']]) || !isset($this->boardsMapping[$watcher['watchable_id']])) {
-					continue;
-				} else {
-					$watcher['watchable_id'] = $this->replaceBoard($watcher['watchable_id']);
-				}
-			} elseif ($watcher['watchable_type'] == 'News' && count($this->newsMapping) > 0) {
-				if (!isset($this->usersMapping[$watcher['user_id']]) || !isset($this->newsMapping[$watcher['watchable_id']])) {
-					continue;
-				} else {
-					$watcher['watchable_id'] = $this->replaceNews($watcher['watchable_id']);
-				}
-			} elseif ($watcher['watchable_type'] == 'Message' && count($this->messagesMapping) > 0) {
-				if (!isset($this->usersMapping[$watcher['user_id']]) || !isset($this->messagesMapping[$watcher['watchable_id']])) {
-					continue;
-				} else {
-					$watcher['watchable_id'] = $this->replaceMessage($watcher['watchable_id']);
-				}
-			} elseif ($watcher['watchable_type'] == 'WikiPage' && count($this->wikipagesMapping) > 0) {
-				if (!isset($this->usersMapping[$watcher['user_id']]) || !isset($this->wikipagesMapping[$watcher['watchable_id']])) {
-					continue;
-				} else {
-					$watcher['watchable_id'] = $this->replaceWikipage($watcher['watchable_id']);
-				}
-			} else {
-				continue;
-			}
+		foreach ($watchersOld as $watcherOld) {
+			unset($watcherOld['id']);
+			$watcherOld['watchable_id'] = $idNew;
 
 			// Update fields for watchers
-			$watcher['user_id'] = $this->replaceUser($watcher['user_id']);
+			$watcherOld['user_id'] = $this->replaceUser($watcherOld['user_id']);
 
-			$idWatcherNew = $this->dbNew->insert('watchers', $watcher);
+			$idWatcherNew = $this->dbNew->insert('watchers', $watcherOld);
 			$this->watchersMapping[$idWatcherOld] = $idWatcherNew;
 		}
 	}
@@ -696,6 +654,9 @@ class migrator
 
 			$idMessageNew = $this->dbNew->insert('messages', $message);
 			$this->messagesMapping[$idMessageOld] = $idMessageNew;
+
+			$this->migrateAttachments($idMessageOld, $idMessageNew, 'Message');
+			$this->migrateWatchers($idMessageOld, $idMessageNew, 'Message');
 		}
 	}
 
@@ -749,6 +710,9 @@ class migrator
 
 			$idDocumentsNew = $this->dbNew->insert('documents', $documentOld);
 			$this->documentsMapping[$idDocumentsOld] = $idDocumentsNew;
+
+			$this->migrateAttachments($idDocumentOld, $idDocumentNew, 'Document');
+			$this->migrateWatchers($idDocumentOld, $idDocumentNew, 'Document');
 		}
 	}
 
@@ -821,6 +785,9 @@ class migrator
 			$this->wikipagesMapping[$idWikiPageOld] = $idWikiPageNew;
 
 			$this->migrateWikiContents($idWikiPageOld);
+
+			$this->migrateAttachments($idWikiPageOld, $idWikiPageNew, 'WikiPage');
+			$this->migrateWatchers($idWikiPageOld, $idWikiPageNew, 'WikiPage');
 		}
 
 		$this->migrateWikiPageParents($idWikiOld);
@@ -883,6 +850,8 @@ class migrator
 
 			$this->migrateIssueRelations($idIssueOld);
 			$this->migrateJournals($idIssueOld);
+			$this->migrateAttachments($idIssueOld, $idIssueNew, 'Issue');
+			$this->migrateWatchers($idIssueOld, $idIssueNew, 'Issue');
 		}
 	}
 
@@ -1070,9 +1039,9 @@ class migrator
 			$this->migrateTimeEntries($idProjectOld);
 			$this->migrateModules($idProjectOld);
 			$this->migrateWikis($idProjectOld);
-			$this->migrateAttachments($idProjectOld);
-			$this->migrateWatchers($idProjectOld);
 			$this->migrateMembers($idProjectOld);
+			$this->migrateAttachments($idProjectOld, $idProjectNew, 'Project');
+			$this->migrateWatchers($idProjectOld, $idProjectNew, 'Project');
 		}
 
 		// some tables have ordering columns
@@ -1105,5 +1074,19 @@ class migrator
 		echo 'wiki pages: ' . count($this->wikipagesMapping) . PHP_EOL;
 		echo 'wiki contents: ' . count($this->wikiContentsMapping) . PHP_EOL;
 		echo 'wiki content versions: ' . count($this->wikiContentVersionsMapping) . PHP_EOL;
+
+		if (defined(FILESBACKUP)) {
+			file_put_contents(FILESBACKUP, '
+# create the tarball
+
+cd %TMPDIR
+tar -czf $TARBALL *
+cd -
+
+# cleanup
+rm -rf $TMPDIR
+
+', FILE_APPEND);
+		}
 	}
 }
