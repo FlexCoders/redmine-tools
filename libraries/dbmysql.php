@@ -153,7 +153,7 @@ class DBMysql
 		static $fake_id = -1;
 
 		if (DRYRUN) {
-			file_put_contents(LOGFILE, $this->databaseName.' => '.$query.' : returned '.$fake_id.PHP_EOL, FILE_APPEND);
+			file_put_contents(LOGFILE, str_pad(substr($this->databaseName,0,30),30).' => '.$query.' : returned '.$fake_id.PHP_EOL, FILE_APPEND);
 			$sql = explode(' ', $query, 2);
 			$sql[0] = trim($sql[0]);
 			if ($sql[0] != 'SELECT') {
