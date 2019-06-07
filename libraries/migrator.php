@@ -1076,7 +1076,7 @@ class migrator
 		echo 'wiki contents: ' . count($this->wikiContentsMapping) . PHP_EOL;
 		echo 'wiki content versions: ' . count($this->wikiContentVersionsMapping) . PHP_EOL;
 
-		if (defined(FILESBACKUP)) {
+		if (defined('FILESBACKUP')) {
 			file_put_contents(FILESBACKUP, '
 # create the tarball
 
