@@ -963,7 +963,7 @@ class migrator
 	protected function migrateProjectTrackers($idProjectOld, $idProjectNew)
 	{
 		// migrate the project trackers
-		$result = $this->dbOld->select('project_trackers', array('project_id' => $idProjectOld));
+		$result = $this->dbOld->select('projects_trackers', array('project_id' => $idProjectOld));
 		$projectTrackersOld = $this->dbOld->getAssocArrays($result);
 		foreach ($projectTrackersOld as $projectTrackerOld) {
 			unset($projectTrackerOld['id']);
@@ -972,7 +972,7 @@ class migrator
 			$projectTrackerOld['project_id'] = $idProjectNew;
 			$projectTrackerOld['tracker_id'] = $this->replaceTracker($projectTrackerOld['tracker_id']);
 
-			$this->dbNew->insert('project_trackers', $projectTrackerOld);
+			$this->dbNew->insert('projects_trackers', $projectTrackerOld);
 		}
 	}
 
