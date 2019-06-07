@@ -1018,6 +1018,8 @@ class migrator
 		$result = $this->dbOld->select('projects', $idProjectOld);
 		$projectsOld = $this->dbOld->getAssocArrays($result);
 
+		echo 'Migrating projects:' . PHP_EOL;
+		echo '===================' . PHP_EOL;
 		foreach ($projectsOld as $projectOld) {
 			$idProjectOld = $projectOld['id'];
 			unset($projectOld['id']);
@@ -1026,7 +1028,7 @@ class migrator
 			$projectOld['rgt'] = 2;
 			$this->dbNew->update('projects', array('lft' => '= lft+1', 'rgt' => '= rgt+1'));
 			$idProjectNew = $this->dbNew->insert('projects', $projectOld);
-			echo "migrating old redmine $idProjectOld => to new redmine $idProjectNew".PHP_EOL;
+			echo "migrating old project #$idProjectOld as new project #$idProjectNew".PHP_EOL;
 			$this->projectsMapping[$idProjectOld] = $idProjectNew;
 			$this->migrateVersions($idProjectOld);
 			$this->migrateCategories($idProjectOld);
@@ -1048,6 +1050,8 @@ class migrator
 		// some tables have ordering columns
 		$this->fixOrdering();
 
+		echo PHP_EOL . 'Migration results:' . PHP_EOL;
+		echo '==================' . PHP_EOL;
 		echo 'users: ' . count($this->usersMapping) . PHP_EOL;
 		echo 'projects: ' . count($this->projectsMapping) . PHP_EOL;
 		echo 'issues: ' . count($this->issuesMapping) . PHP_EOL;
