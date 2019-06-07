@@ -218,7 +218,11 @@ class migrator
 		}
 
 		if (!isset($this->trackersMapping[$idTrackerOld])) {
-			throw new Exception("No status defined for old tracker id '$idTrackerOld'");
+			// migrate them dynamically when needed
+			$this->migrateTrackers($idTrackerOld);
+			if (!isset($this->trackersMapping[$idTrackerOld])) {
+				throw new Exception("No tracker defined for old tracker id '$idTrackerOld'");
+			}
 		}
 
 		return $this->trackersMapping[$idTrackerOld];
@@ -426,6 +430,25 @@ class migrator
 		}
 	}
 
+	protected function migrateTrackers($idTrackerOld)
+	{
+		// migrate the tracker
+		$result = $this->dbOld->select('trackers', array('id' => $idTrackerOld));
+		$trackersOld = $this->dbOld->getAssocArrays($result);
+		foreach ($trackersOld as $trackerOld) {
+			// check if this tracker already exists
+			$result = $this->dbNew->select('trackers', array('name' => $trackerOld['name']));
+			$trackersNew = $this->dbNew->getAssocArray($result);
+			if ($trackersNew) {
+				$idTrackerNew = $trackersNew ['id'];
+			} else {
+				unset($trackerOld['id']);
+				$idTrackerNew = $this->dbNew->insert('trackers', $trackerOld);
+			}
+			$this->trackersMapping[$idTrackerOld] = $idTrackerNew;
+		}
+	}
+
 	protected function migrateEnumerations($idEnumerationOld)
 	{
 		// migrate the enumeration
@@ -513,7 +536,7 @@ class migrator
 		}
 	}
 
-	protected function migratemodules($idProjectOld)
+	protected function migrateModules($idProjectOld)
 	{
 		$result = $this->dbOld->select('enabled_modules', array('project_id' => $idProjectOld));
 		$modulesOld = $this->dbOld->getAssocArrays($result);
@@ -937,6 +960,22 @@ class migrator
 		}
 	}
 
+	protected function migrateProjectTrackers($idProjectOld, $idProjectNew)
+	{
+		// migrate the project trackers
+		$result = $this->dbOld->select('project_trackers', array('project_id' => $idProjectOld));
+		$projectTrackersOld = $this->dbOld->getAssocArrays($result);
+		foreach ($projectTrackersOld as $projectTrackerOld) {
+			unset($projectTrackerOld['id']);
+
+			// Update fields for new version of member role
+			$projectTrackerOld['project_id'] = $idProjectNew;
+			$projectTrackerOld['tracker_id'] = $this->replaceTracker($projectTrackerOld['tracker_id']);
+
+			$this->dbNew->insert('project_trackers', $projectTrackerOld);
+		}
+	}
+
 	protected function fixOrdering()
 	{
 		// reorder Boards
@@ -1039,6 +1078,7 @@ class migrator
 			$projectOld['rgt'] = 2;
 			$this->dbNew->update('projects', array('lft' => '= lft+2', 'rgt' => '= rgt+2'));
 			$idProjectNew = $this->dbNew->insert('projects', $projectOld);
+
 			echo "migrating old project #$idProjectOld as new project #$idProjectNew".PHP_EOL;
 			$this->projectsMapping[$idProjectOld] = $idProjectNew;
 			$this->migrateVersions($idProjectOld);
@@ -1056,6 +1096,7 @@ class migrator
 			$this->migrateMembers($idProjectOld);
 			$this->migrateAttachments($idProjectOld, $idProjectNew, 'Project');
 			$this->migrateWatchers($idProjectOld, $idProjectNew, 'Project');
+			$this->migrateProjectTrackers($idProjectOld, $idProjectNew);
 		}
 
 		// some tables have ordering columns
