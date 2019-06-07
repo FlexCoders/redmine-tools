@@ -702,15 +702,15 @@ class migrator
 		$result = $this->dbOld->select('documents', array('project_id' => $idProjectOld));
 		$documentsOld = $this->dbOld->getAssocArrays($result);
 		foreach ($documentsOld as $documentOld) {
-			$idDocumentsOld = $documentOld['id'];
+			$idDocumentOld = $documentOld['id'];
 			unset($documentOld['id']);
 
 			// Update fields for new version of document
 			$documentOld['project_id'] = $this->replaceProject($idProjectOld);
 			$documentOld['category_id'] = $this->replaceEnumeration($documentOld['category_id']);
 
-			$idDocumentsNew = $this->dbNew->insert('documents', $documentOld);
-			$this->documentsMapping[$idDocumentsOld] = $idDocumentsNew;
+			$idDocumentNew = $this->dbNew->insert('documents', $documentOld);
+			$this->documentsMapping[$idDocumentOld] = $idDocumentNew;
 
 			$this->migrateAttachments($idDocumentOld, $idDocumentNew, 'Document');
 			$this->migrateWatchers($idDocumentOld, $idDocumentNew, 'Document');
