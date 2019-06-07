@@ -35,9 +35,20 @@ if (defined('FILESBACKUP'))
 # Path to your redmine installation
 # Defaults to current directory
 REDMINE=.
+ARCHIVE=/tmp/redmine-files.tar.gz
+
+# check if the redmine patch is ok
+if { ! -f $REDMINE/lib/redmine.rb ]; then
+	echo "Directory $REDMINE does not contain a Redmine installation!"
+	exit
+fi
+
+if [ ! -d $REDMINE/files ]; then
+	echo "Directory $REDMINE does not contain the files folder!"
+	exit
+fi
 
 TMPDIR=`mktemp -d 2>/dev/null || mktemp -d -t "tmpdir"`
-TARBALL=$(mktemp -u).tar.gz
 
 ');
 }
@@ -1084,12 +1095,17 @@ class migrator
 			file_put_contents(FILESBACKUP, '
 # create the tarball
 
+if [ -f $ARCHIVE ]; then
+	rm -f $ARCHIVE
+fi
 cd %TMPDIR
-tar -czf $TARBALL *
+tar -czf $ARCHIVE *
 cd -
 
 # cleanup
 rm -rf $TMPDIR
+
+echo Redmine attachment backup created in $ARCHIVE
 
 ', FILE_APPEND);
 		}
