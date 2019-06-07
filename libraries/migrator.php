@@ -592,6 +592,7 @@ class migrator
 		$result = $this->dbOld->select('watchers', array('watchable_id' => $idOld, 'watchable_type' => $type));
 		$watchersOld = $this->dbOld->getAssocArrays($result);
 		foreach ($watchersOld as $watcherOld) {
+			$idWatcherOld = $watcherOld['id'];
 			unset($watcherOld['id']);
 			$watcherOld['watchable_id'] = $idNew;
 
